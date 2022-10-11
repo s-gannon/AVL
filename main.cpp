@@ -219,8 +219,8 @@ private:
 		}
 		else{
 			if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
-	            delete node;
-	            node = nullptr;
+				delete node;
+				node = nullptr;
 			}
 			else if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
 				Node* predecessor = find_max_key(node->get_left_link());
