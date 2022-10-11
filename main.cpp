@@ -1,20 +1,21 @@
 #include <iostream>
-#include <string>
 #include <sstream>
-#include <cmath>
+#include <fstream>
 #include <vector>
+#include <string>
+#include <cmath>
 
 using namespace std;
 
 class Node {
 private:
 	string name;
-	int gator_id;
+	string gator_id;
 	Node* left;
 	Node* right;
 	Node* parent;
 public:
-	Node(string _name, int _gator_id) {
+	Node(string _name, string _gator_id) {
 		name = _name;
 		gator_id = _gator_id;
 		left = nullptr;
@@ -31,7 +32,7 @@ public:
 	void set_parent_link(Node* _parent) { parent = _parent; }
 	//accessors
 	string get_name() { return name; }
-	int get_gator_id() { return gator_id; }
+	string get_gator_id() { return gator_id; }
 	Node* get_left_link() { return left; }
 	Node* get_right_link() { return right; }
 	Node* get_parent_link() { return parent; }
@@ -41,7 +42,7 @@ class AVL {
 private:
 	Node* root;
 
-	void insert(Node* node, string _name, int _gator_id) {	//come back to this
+	void insert(Node* node, string _name, string _gator_id) {	//come back to this
 		if (root == nullptr) {
 			root = node;
 			return;
@@ -201,6 +202,32 @@ private:
 			}
 		}
 	}
+	void remove_id(Node* node, string _gator_id){
+		if(root == nullptr){
+			cout << "unsuccessful" << endl;
+			return;
+		}
+		if(node->get_gator_id() == _gator_id){
+			if(node->get_left_link() == nullptr && node->get_right_link() == nullptr ){
+				if(node->get_parent_link()->get_left_link() == node){
+					node->get_parent_link()->set_left_link(nullptr);
+				}
+				else{
+					node->get_parent_link()->set_right_link(nullptr);
+				}
+				node->set_parent_link(nullptr);
+			}
+			else if(node->get_left_link() != nullptr){	//if the left branch is not null
+				//bring it up to where this node will no longer be
+				if(node->get_parent_link()->get_left_link() == node){
+					node->get_parent_link()->set_left_link(node->get_left_link());
+				}
+				else{
+					node->get_parent_link()->set_right_link(node->get_right_link());
+				}
+			}
+		}
+	}
 public:
 	AVL() {
 		root = nullptr;
@@ -250,26 +277,32 @@ public:
 		for(auto i : print_vec)
 			cout << i << endl;
 	}
-	void printLevelCount(){
+	void print_level_count(){
 		if (node == nullptr) {
 			cout << "0" << endl;
 			return;
 		}
-		int levelCount;
-		levelCount = get_max_height(root, 1);
-		cout << levelCount << endl;
+		int level_count;
+		level_count = get_max_height(root, 1);
+		cout << level_count << endl;
+	}
+	void remove_id(string _gator_id){
+
 	}
 };
 
-int main() {
-	bool cont_prog = true;
-	string user_input;
+int main(int argc, char** argv) {
+	fstream input_file ("/home/sgannon/Documents/Varsity-Tutors-Files/Jordan-CPP/Project1/test-io/input-files/1.txt");
+	string num_str;
 
-	do {
-		string next_word;
-		size_t word_pos = 0;
+	input_file >> num_str;
 
-		getline(cin, user_input);
+	int num_lines = stoi(num_str);
+
+	for(int i = 0; i < num_lines; i++){
+		string user_input;
+
+		input_file >> user_input;
 
 		istringstream user_input_stream(user_input);
 
@@ -285,13 +318,23 @@ int main() {
 
 				}
 				else if (command == "search") {
+					string arg;
+					string parsed_arg = "";
 
+					user_input_stream >> arg;
+
+					if (arg[0] == '"') {	//looking for a name
+						int i = 1;
+						while(arg[i] != '"'){
+							parsed_arg += arg[i];
+							i++;
+						}
+
+					}
 				}
 			}
 		}
-
-		cont_prog = false;
-	} while (cont_prog);
+	}
 
 	return 0;
 }
