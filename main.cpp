@@ -203,11 +203,6 @@ private:
 		}
 		return node;
 	}
-
-	void remove_in_order(Node* node, int num){
-
-	}
-
 	void remove_id(Node* node, string _gator_id){
 		if(root == nullptr){
 			cout << "unsuccessful" << endl;
@@ -260,7 +255,7 @@ public:
 		insert(root, _name, _gator_id);
 	}
 	void print_pre_order() {
-		vector<int> print_vec;
+		vector<string> print_vec;
 		print_pre_order(root, &print_vec);
 		for (int i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
@@ -270,7 +265,7 @@ public:
 		}
 	}
 	void print_in_order() {
-		vector<int> print_vec;
+		vector<string> print_vec;
 		print_in_order(root, &print_vec);
 		for (int i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
@@ -280,7 +275,7 @@ public:
 		}
 	}
 	void print_post_order() {
-		vector<int> print_vec;
+		vector<string> print_vec;
 		print_post_order(root, &print_vec);
 		for (int i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
@@ -314,7 +309,12 @@ public:
 		cout << level_count << endl;
 	}
 	void remove_id(string _gator_id){
-
+		remove_id(root, _gator_id);
+	}
+	void remove_in_order(int num){
+		vector<string> id_vec;
+		print_in_order(root, &id_vec);
+		remove_id(root, id_vec[num]);
 	}
 };
 
