@@ -203,6 +203,11 @@ private:
 		}
 		return node;
 	}
+
+	void remove_in_order(Node* node, int num){
+
+	}
+
 	void remove_id(Node* node, string _gator_id){
 		if(root == nullptr){
 			cout << "unsuccessful" << endl;
