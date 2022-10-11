@@ -175,56 +175,48 @@ private:
 		searchName(node->get_left_link(), name, current);
 		searchName(node->get_right_link(), name,  current);
 	}
-	void search_id(Node* node, string _gator_id){
+	Node* search_id(Node* node, string _gator_id){
 		if (root == nullptr) {
-			cout << "unsuccessful" << endl;
-			return;
-			//print unsecessful
+			return nullptr;
 		}
 		if (node->get_gator_id() == _gator_id){
-			cout << node->get_name() << endl;
-			return;
+			return node;	//found it! return the ptr
 		}
 		if (node->get_gator_id() < _gator_id) {	//go down the left
 			if (node->get_left_link() == nullptr)
-				return;	//return this node
+				return nullptr;	//there's no more left, so it's not here
 			else {
-				search(node->get_left_link(), _gator_id);
-				return;
+				return search(node->get_left_link(), _gator_id);	//there's more left
 			}
 		}
 		else {	//go down the right
 			if (node->get_right_link() == nullptr)
-				return;	//return this node
+				return nullptr;
 			else {
-				search(node->get_right_link(), _gator_id);
-				return;
+				return search(node->get_right_link(), _gator_id);
 			}
 		}
 	}
 	void remove_id(Node* node, string _gator_id){
-		if(root == nullptr){
+		Node* found = search_id(root, _gator_id);
+		Node* parent = found->get_parent_link();
+
+		if(root == nullptr || found == nullptr){
 			cout << "unsuccessful" << endl;
 			return;
 		}
-		if(node->get_gator_id() == _gator_id){
-			if(node->get_left_link() == nullptr && node->get_right_link() == nullptr ){
-				if(node->get_parent_link()->get_left_link() == node){
-					node->get_parent_link()->set_left_link(nullptr);
+
+		if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
+			if(node != root){
+				if(parent->get_left_link() == node){
+					parent->set_left_link(nullptr);
 				}
 				else{
-					node->get_parent_link()->set_right_link(nullptr);
+					parent->set_right_link(nullptr);
 				}
-				node->set_parent_link(nullptr);
 			}
-			else if(node->get_left_link() != nullptr){	//if the left branch is not null
-				//bring it up to where this node will no longer be
-				if(node->get_parent_link()->get_left_link() == node){
-					node->get_parent_link()->set_left_link(node->get_left_link());
-				}
-				else{
-					node->get_parent_link()->set_right_link(node->get_right_link());
-				}
+			else{
+
 			}
 		}
 	}
@@ -269,7 +261,13 @@ public:
 		}
 	}
 	void search_id(string _gator_id){
-		search_id(root, _gator_id);
+		Node* found = search_id(root, _gator_id);
+		if(found == nullptr){
+			cout << "unsuccessful" << endl;
+		}
+		else{
+			cout << found->get_name() << endl;
+		}
 	}
 	void search_name(string name){
 		vector<int> print_vec;
