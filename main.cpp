@@ -197,6 +197,12 @@ private:
 			}
 		}
 	}
+	Node* find_max_key(Node* node){
+		while(node->get_right_link() != nullptr){
+			node = node->get_right_link();
+		}
+		return node;
+	}
 	void remove_id(Node* node, string _gator_id){
 		if(root == nullptr){
 			cout << "unsuccessful" << endl;
@@ -205,40 +211,38 @@ private:
 
 		if(_gator_id < node->get_gator_id()){
 			remove_id(node->get_left_link(), _gator_id);
+			return;
 		}
 		else if(_gator_id > node->get_gator_id()){
 			remove_id(node->get_right_link(), _gator_id);
+			return;
 		}
 		else{
 			if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
-				
+	            delete node;
+	            node = nullptr;
+			}
+			else if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
+				Node* predecessor = find_max_key(node->get_left_link());
+
+				node->set_gator_id(predecessor->get_gator_id());
+				remove_id(node->get_left_link(), predecessor->get_gator_id());
+				return;
+			}
+			else{
+				Node* current = node;	//store mem addr of node we want to delete
+
+				if(node->get_left_link() != nullptr){	//if we have a left branch
+					node = node->get_left_link();		//set node to the left branch
+				}
+				else{
+					node = node->get_right_link();		//else, set to right branch
+				}
+
+				delete current;		//delete the original node at the mem addr
 			}
 		}
-		// Node* found = search_id(root, _gator_id);
-		// Node* parent = found->get_parent_link();
-		//
-		// if(root == nullptr || found == nullptr){
-		// 	cout << "unsuccessful" << endl;
-		// 	return;
-		// }
-
-		// if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
-		// 	if(node != root){
-		// 		if(parent->get_left_link() == node){
-		// 			parent->set_left_link(nullptr);
-		// 		}
-		// 		else{
-		// 			parent->set_right_link(nullptr);
-		// 		}
-		// 	}
-		// 	else{
-		// 		root = nullptr;
-		// 	}
-		// 	free(node);
-		// }
-		// else if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
-		//
-		// }
+		cout << "successful" << endl;
 	}
 public:
 	AVL() {
