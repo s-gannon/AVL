@@ -198,27 +198,47 @@ private:
 		}
 	}
 	void remove_id(Node* node, string _gator_id){
-		Node* found = search_id(root, _gator_id);
-		Node* parent = found->get_parent_link();
-
-		if(root == nullptr || found == nullptr){
+		if(root == nullptr){
 			cout << "unsuccessful" << endl;
 			return;
 		}
 
-		if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
-			if(node != root){
-				if(parent->get_left_link() == node){
-					parent->set_left_link(nullptr);
-				}
-				else{
-					parent->set_right_link(nullptr);
-				}
-			}
-			else{
-
+		if(_gator_id < node->get_gator_id()){
+			remove_id(node->get_left_link(), _gator_id);
+		}
+		else if(_gator_id > node->get_gator_id()){
+			remove_id(node->get_right_link(), _gator_id);
+		}
+		else{
+			if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
+				
 			}
 		}
+		// Node* found = search_id(root, _gator_id);
+		// Node* parent = found->get_parent_link();
+		//
+		// if(root == nullptr || found == nullptr){
+		// 	cout << "unsuccessful" << endl;
+		// 	return;
+		// }
+
+		// if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
+		// 	if(node != root){
+		// 		if(parent->get_left_link() == node){
+		// 			parent->set_left_link(nullptr);
+		// 		}
+		// 		else{
+		// 			parent->set_right_link(nullptr);
+		// 		}
+		// 	}
+		// 	else{
+		// 		root = nullptr;
+		// 	}
+		// 	free(node);
+		// }
+		// else if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
+		//
+		// }
 	}
 public:
 	AVL() {
