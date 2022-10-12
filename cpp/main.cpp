@@ -117,10 +117,15 @@ private:
 							break;
 						}
 					case 1:		//left right
-						
-						break;
+						{
+
+							break;
+						}
 					case -1:	//right left
-						break;
+						{
+
+							break;
+						}
 					default:
 						cout << "unsuccessful" << endl;
 						return;
@@ -325,37 +330,42 @@ public:
 	}
 };
 
-int main(int argc, char** argv) {
-	fstream input_file ("/home/sgannon/Documents/Varsity-Tutors-Files/Jordan-CPP/Project1/test-io/input-files/1.txt");
+int main() {
 	string num_str;
+	vector<string> commands;
 
-	input_file >> num_str;
+	cin >> num_str;
 
-	int num_lines = stoi(num_str);
+	for(int i = 0; i <= stoi(num_str); i++){
+		string arg;
+		getline(cin, arg);
+		commands.push_back(arg);
+	}
 
-	for(int i = 0; i < num_lines; i++){
-		string user_input;
+	commands.erase(commands.begin());	//get rid of leading empty string in vec
 
-		input_file >> user_input;
+	for(auto i : commands)
+		cout << i << endl;
 
-		istringstream user_input_stream(user_input);
+	for(auto command : commands){
+		istringstream command_parts(command);
 
-		while (user_input_stream) {
-			string command;
-			user_input_stream >> command;
+		while (command_parts) {
+			string part;
+			command_parts >> part;
 
-			if (user_input_stream) {
-				if (command == "insert") {
+			if (command_parts) {
+				if (part == "insert") {
 
 				}
-				else if (command == "remove") {
+				else if (part == "remove") {
 
 				}
-				else if (command == "search") {
+				else if (part == "search") {
 					string arg;
 					string parsed_arg = "";
 
-					user_input_stream >> arg;
+					command_parts >> arg;
 
 					if (arg[0] == '"') {	//looking for a name
 						int i = 1;
