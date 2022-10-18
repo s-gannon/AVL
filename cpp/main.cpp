@@ -46,6 +46,7 @@ private:
 	void insert(Node* node, string _name, string _gator_id) {	//come back to this
 		if (root == nullptr) {
 			root = node;
+			cout << "successful" << endl;
 			return;
 		}
 		if (node->get_gator_id() < _gator_id) {	//go down the left
@@ -60,7 +61,7 @@ private:
 			}
 		}
 		else {	//go down the right
-			if (node->get_right_link() == nullptr) {
+			if (node->get_right_link() == nullptr) {	//successful addition
 				static Node* new_node = new Node(_name, _gator_id);
 				node->get_right_link()->set_parent_link(node);
 				node->set_right_link(new_node);
@@ -70,8 +71,8 @@ private:
 				return;
 			}
 		}
-		//balance
-		while(node != root){
+		//balancing portion
+		/*while(node != root){
 			int left_height = get_max_height(node->get_left_link(),0);
 			int right_height = get_max_height(node->get_right_link(),0);
 			if(abs(left_height - right_height) > 1){
@@ -134,8 +135,9 @@ private:
 			}
 
 			node = node->get_parent_link();
-		}
+		} */
 		cout << "successful" << endl;
+		return;
 	}
 	int get_max_height(Node* node, int height) {
 		if(node == nullptr){
@@ -145,14 +147,21 @@ private:
 			return height;
 		}
 		else if (node->get_left_link() != nullptr && node->get_right_link() != nullptr) {
-			return 	max(get_max_height(node->get_left_link(), ++height),
-				get_max_height(node->get_right_link(), ++height));
+			++height;
+			return 	max(get_max_height(node->get_left_link(), height),
+				get_max_height(node->get_right_link(), height));
 		}
 		else if (node->get_left_link() != nullptr) {
-			return get_max_height(node->get_left_link(), ++height);
+			++height;
+			return get_max_height(node->get_left_link(), height);
 		}
 		else if (node->get_right_link() != nullptr) {
-			return get_max_height(node->get_right_link(), ++height);
+			++height;
+			return get_max_height(node->get_right_link(), height);
+		}
+		else{
+			//error out if we get here
+			return -1;
 		}
 	}
 	void print_pre_order(Node* node, vector<string>& current) {
@@ -191,10 +200,10 @@ private:
 		if (root == nullptr) {
 			return nullptr;
 		}
-		if (node->get_gator_id() == _gator_id){
+		if (stoi(node->get_gator_id()) == stoi(_gator_id)){
 			return node;	//found it! return the ptr
 		}
-		if (node->get_gator_id() < _gator_id) {	//go down the left
+		if (stoi(node->get_gator_id()) < stoi(_gator_id)) {	//go down the left
 			if (node->get_left_link() == nullptr)
 				return nullptr;	//there's no more left, so it's not here
 			else {
@@ -208,6 +217,7 @@ private:
 				return search_id(node->get_right_link(), _gator_id);
 			}
 		}
+
 	}
 	Node* find_max_key(Node* node){
 		while(node->get_right_link() != nullptr){
@@ -269,7 +279,7 @@ public:
 	void print_pre_order() {
 		vector<string> print_vec;
 		print_pre_order(root, print_vec);
-		for (int i = 0; i < print_vec.size(); i++) {
+		for (size_t i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
@@ -279,7 +289,7 @@ public:
 	void print_in_order() {
 		vector<string> print_vec;
 		print_in_order(root, print_vec);
-		for (int i = 0; i < print_vec.size(); i++) {
+		for (size_t i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
@@ -289,7 +299,7 @@ public:
 	void print_post_order() {
 		vector<string> print_vec;
 		print_post_order(root, print_vec);
-		for (int i = 0; i < print_vec.size(); i++) {
+		for (size_t i = 0; i < print_vec.size(); i++) {
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
@@ -331,11 +341,13 @@ public:
 };
 
 int main() {
+	AVL avl;
 	string num_str;
 	vector<string> commands;
 
 	cin >> num_str;
 
+	//how many commands to run
 	for(int i = 0; i <= stoi(num_str); i++){
 		string arg;
 		getline(cin, arg);
@@ -344,41 +356,49 @@ int main() {
 
 	commands.erase(commands.begin());	//get rid of leading empty string in vec
 
-	for(auto i : commands)
-		cout << i << endl;
+	// for(auto i : commands)
+	// 	cout << i << endl;
 
 	for(auto command : commands){
 		istringstream command_parts(command);
+		string start;
 
-		while (command_parts) {
-			string part;
-			command_parts >> part;
+		command_parts >> start;
+		if (start == "insert") {
+			string name;
+			string id;
 
-			if (command_parts) {
-				if (part == "insert") {
+			command_parts >> name;
+			command_parts >> id;
 
-				}
-				else if (part == "remove") {
+			avl.insert(name.substr(1, name.size()-2), id);
+		}
+		else if (start == "remove") {
+			string arg;
 
-				}
-				else if (part == "search") {
-					string arg;
-					string parsed_arg = "";
+			command_parts >> arg;
 
-					command_parts >> arg;
+			if(arg.size() == 8){	//remove id (string)
+				avl.remove_id(arg);
+			}
+			else{	//remove in order (int)
+				avl.remove_in_order(stoi(arg));
+			}
+		}
+		else if (start == "search") {
+			string arg;
 
-					if (arg[0] == '"') {	//looking for a name
-						int i = 1;
-						while(arg[i] != '"'){
-							parsed_arg += arg[i];
-							i++;
-						}
+			command_parts >> arg;
 
-					}
-				}
+			if (arg[0] == '"') {	//looking for a name
+				avl.search_name(arg.substr(1, arg.size()-2));
+			}
+			else{	//looking for an ID
+				avl.search_id(arg);
 			}
 		}
 	}
+	avl.print_in_order();
 
 	return 0;
 }
