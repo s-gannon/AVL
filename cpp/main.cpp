@@ -45,7 +45,7 @@ private:
 
 	void insert(Node* node, string _name, string _gator_id) {	//come back to this
 		if (root == nullptr) {
-			root = node;
+			root = new Node(_name, _gator_id);
 			cout << "successful" << endl;
 			return;
 		}
@@ -181,8 +181,8 @@ private:
 	void print_post_order(Node* node, vector<string>& current) {
 		if (node == nullptr)
 			return;
-		print_in_order(node->get_left_link(), current);
-		print_in_order(node->get_right_link(), current);
+		print_post_order(node->get_left_link(), current);
+		print_post_order(node->get_right_link(), current);
 		current.push_back(node->get_gator_id());
 	}
 	void search_name(Node* node, string name, vector<string>& current) {
@@ -400,7 +400,7 @@ int main() {
 			}
 		}
 	}
-	avl.print_in_order();
+	//avl.print_in_order();
 
 	return 0;
 }
