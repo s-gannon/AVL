@@ -49,11 +49,11 @@ private:
 			cout << "successful" << endl;
 			return;
 		}
-		if (node->get_gator_id() < _gator_id) {	//go down the left
+		if (_gator_id < node->get_gator_id()) {	//go down the left
 			if (node->get_left_link() == nullptr) {
 				static Node* new_node = new Node(_name, _gator_id);
-				node->get_left_link()->set_parent_link(node);
 				node->set_left_link(new_node);
+				node->get_left_link()->set_parent_link(node);
 			}
 			else {
 				insert(node->get_left_link(), _name, _gator_id);
@@ -63,8 +63,8 @@ private:
 		else {	//go down the right
 			if (node->get_right_link() == nullptr) {	//successful addition
 				static Node* new_node = new Node(_name, _gator_id);
-				node->get_right_link()->set_parent_link(node);
 				node->set_right_link(new_node);
+				node->get_right_link()->set_parent_link(node);
 			}
 			else {
 				insert(node->get_right_link(), _name, _gator_id);
@@ -72,7 +72,7 @@ private:
 			}
 		}
 		//balancing portion
-		/*while(node != root){
+		while(node != root){
 			int left_height = get_max_height(node->get_left_link(),0);
 			int right_height = get_max_height(node->get_right_link(),0);
 			if(abs(left_height - right_height) > 1){
@@ -135,7 +135,7 @@ private:
 			}
 
 			node = node->get_parent_link();
-		} */
+		} 
 		cout << "successful" << endl;
 		return;
 	}
@@ -187,7 +187,6 @@ private:
 	}
 	void search_name(Node* node, string name, vector<string>& current) {
 		if (node == nullptr){
-			cout << "unsuccessful" << endl;
 			return;
 		}
 		if (!name.compare(node->get_name())){	//if comparison returns 0, invert that and make it true because the two are equal
@@ -200,10 +199,10 @@ private:
 		if (root == nullptr) {
 			return nullptr;
 		}
-		if (stoi(node->get_gator_id()) == stoi(_gator_id)){
+		if (!(node->get_gator_id().compare(_gator_id))){
 			return node;	//found it! return the ptr
 		}
-		if (stoi(node->get_gator_id()) < stoi(_gator_id)) {	//go down the left
+		if (_gator_id < node->get_gator_id()) {	//go down the left
 			if (node->get_left_link() == nullptr)
 				return nullptr;	//there's no more left, so it's not here
 			else {
@@ -318,6 +317,9 @@ public:
 	void search_name(string name){
 		vector<string> print_vec;
 		search_name(root, name, print_vec);
+		if(print_vec.size() == 0){
+			cout << "unsuccessful" << endl;
+		}
 		for(auto i : print_vec)
 			cout << i << endl;
 	}
@@ -405,7 +407,7 @@ int main() {
 
 
 //TO DO:
-//balance
+// balance
 // remove id
 // remove inOrder N
 // main
