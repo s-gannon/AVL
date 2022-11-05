@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 
@@ -25,6 +27,7 @@ public:
 	~Node() {
 		delete left;
 		delete right;
+		delete parent;
 	}
 	//mutators
 	void set_left_link(Node* _left) { left = _left; }
@@ -43,14 +46,77 @@ class AVL {
 private:
 	Node* root;
 
-	void insert(Node* node, string _name, string _gator_id) {	//come back to this
+	Node* left_rotate(Node* node){
+		Node* par = node;
+		Node* child = node->get_right_link();
+
+		child->set_left_link(par);
+		par->set_right_link(nullptr);
+		par->set_parent_link(child);
+		child->set_parent_link(nullptr);
+		
+		return child;
+	}
+
+	Node* right_rotate(Node* node){
+		Node* par = node;
+		Node* child = node->get_left_link();
+
+		child->set_right_link(par);
+		par->set_left_link(nullptr);
+		par->set_parent_link(child);
+		child->set_parent_link(nullptr);
+		
+		return child;
+	}
+
+	void balance(){
+		int left_height = get_max_height(root->get_left_link(), 0);
+		int right_height = get_max_height(root->get_right_link(), 0);
+		if(abs(left_height - right_height) > 1){
+			int parent_height = get_max_height(root, 0);
+			int child_height;
+
+			child_height = (left_height > right_height ? left_height : right_height);
+
+			int height_sum = parent_height + child_height;
+			switch(height_sum){
+				case 3:		//left left
+					{
+						root = right_rotate(root);
+					}
+				case -3:	//right right
+					{
+						root = left_rotate(root);
+					}
+				case 1:		//left right
+					{
+						root->set_left_link(left_rotate(root->get_left_link()));
+						root = right_rotate(root);
+						break;
+					}
+				case -1:	//right left
+					{
+						root->set_right_link(right_rotate(root->get_right_link()));
+						root = left_rotate(root);
+						break;
+					}
+				default:
+					cout << "unsuccessful" << endl;
+					return;
+					break;
+			}
+		}
+	}
+
+	void insert(Node* node, string _name, string _gator_id) {
 		if (root == nullptr) {
 			root = new Node(_name, _gator_id);
 			cout << "successful" << endl;
 			return;
 		}
 		if (_gator_id < node->get_gator_id()) {	//go down the left
-			if (node->get_left_link() == nullptr) {
+			if (node->get_left_link() == nullptr) {	//should go in left and nothing in left pointer
 				static Node* new_node = new Node(_name, _gator_id);
 				node->set_left_link(new_node);
 				node->get_left_link()->set_parent_link(node);
@@ -72,70 +138,8 @@ private:
 			}
 		}
 		//balancing portion
-		while(node != root){
-			int left_height = get_max_height(node->get_left_link(),0);
-			int right_height = get_max_height(node->get_right_link(),0);
-			if(abs(left_height - right_height) > 1){
-				int parent_height = get_max_height(node, 0);
-				int child_height;
-				Node* child;
+		balance(node);
 
-				if(left_height == -1){
-					child = node->get_left_link();
-					child_height = left_height;
-				}
-				else{
-					child = node->get_right_link();
-					child_height = right_height;
-				}
-
-				int height_sum = parent_height + child_height;
-				switch(height_sum){
-					case 3:		//left left
-						{
-							Node* grandparent = node->get_parent_link();
-							node->get_left_link()->set_right_link(node);
-							node->get_left_link()->set_parent_link(grandparent);
-							if(node == grandparent->get_left_link())
-								grandparent->set_left_link(node->get_left_link());
-							else
-								grandparent->set_right_link(node->get_left_link());
-							node->set_parent_link(node->get_left_link());
-							node->set_left_link(nullptr);
-							break;
-						}
-					case -3:	//right right
-						{
-							Node* grandparent = node->get_parent_link();
-							node->get_right_link()->set_left_link(node);
-							node->get_right_link()->set_parent_link(grandparent);
-							if(node == grandparent->get_left_link())
-								grandparent->set_left_link(node->get_right_link());
-							else
-								grandparent->set_right_link(node->get_right_link());
-							node->set_parent_link(node->get_right_link());
-							node->set_right_link(nullptr);
-							break;
-						}
-					case 1:		//left right
-						{
-
-							break;
-						}
-					case -1:	//right left
-						{
-
-							break;
-						}
-					default:
-						cout << "unsuccessful" << endl;
-						return;
-						break;
-				}
-			}
-
-			node = node->get_parent_link();
-		} 
 		cout << "successful" << endl;
 		return;
 	}
@@ -160,7 +164,7 @@ private:
 			return get_max_height(node->get_right_link(), height);
 		}
 		else{
-			//error out if we get here
+			fprintf(stderr, "[ERROR] Unexpected error in get_max_height.\n");
 			return -1;
 		}
 	}
