@@ -204,10 +204,10 @@ private:
 		if (node == nullptr){
 			return;
 		}
+		search_name(node->get_left_link(), name, current);
 		if (!name.compare(node->get_name())){	//if comparison returns 0, invert that and make it true because the two are equal
 			current.push_back(node->get_gator_id());
 		}
-		search_name(node->get_left_link(), name, current);
 		search_name(node->get_right_link(), name,  current);
 	}
 	Node* search_id(Node* node, string _gator_id){
@@ -414,6 +414,9 @@ int main(void) {
 			else{	//looking for an ID
 				avl.search_id(arg);
 			}
+		}
+		else if (start == "printLevelCount") {
+			avl.print_level_count();
 		}
 	}
 	//avl.print_in_order();
