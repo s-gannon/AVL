@@ -25,9 +25,12 @@ public:
 		parent = nullptr;
 	}
 	~Node() {
-		delete left;
-		delete right;
-		delete parent;
+		if(left == nullptr)
+			delete left;
+		if(right == nullptr)
+			delete right;
+		if(parent == nullptr)
+			delete parent;
 	}
 	//mutators
 	void set_left_link(Node* _left) { left = _left; }
@@ -117,30 +120,38 @@ private:
 		}
 		if (_gator_id < node->get_gator_id()) {	//go down the left
 			if (node->get_left_link() == nullptr) {	//should go in left and nothing in left pointer
-				static Node* new_node = new Node(_name, _gator_id);
+				Node* new_node = new Node(_name, _gator_id);
 				node->set_left_link(new_node);
-				node->get_left_link()->set_parent_link(node);
+				new_node->set_parent_link(node);
+
+				cout << "successful" << endl;
+				return;
 			}
 			else {
 				insert(node->get_left_link(), _name, _gator_id);
 				return;
 			}
 		}
-		else {	//go down the right
+		else if(_gator_id > node->get_gator_id()) {	//go down the right
 			if (node->get_right_link() == nullptr) {	//successful addition
-				static Node* new_node = new Node(_name, _gator_id);
+				Node* new_node = new Node(_name, _gator_id);
 				node->set_right_link(new_node);
 				node->get_right_link()->set_parent_link(node);
+				cout << "successful" << endl;
+				return;
 			}
 			else {
 				insert(node->get_right_link(), _name, _gator_id);
 				return;
 			}
 		}
+		else{
+			cout << "unsuccessful" << endl;
+			return;
+		}
 		//balancing portion
 		balance();
 
-		cout << "successful" << endl;
 		return;
 	}
 	int get_max_height(Node* node, int height) {
@@ -274,7 +285,8 @@ public:
 		root = nullptr;
 	}
 	~AVL() {
-		delete root;
+		if(root == nullptr)
+			delete root;
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
@@ -346,7 +358,7 @@ public:
 	}
 };
 
-int main() {
+int main(void) {
 	AVL avl;
 	string num_str;
 	vector<string> commands;
@@ -405,7 +417,6 @@ int main() {
 		}
 	}
 	//avl.print_in_order();
-
 	return 0;
 }
 
