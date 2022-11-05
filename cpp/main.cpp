@@ -418,6 +418,16 @@ int main(void) {
 		else if (start == "printLevelCount") {
 			avl.print_level_count();
 		}
+		else if (start == "printInOrder") {
+			avl.print_in_order();
+		}
+		else if (start == "removeInorder") {
+			string arg;
+
+			command_parts >> arg;
+
+			avl.remove_in_order(stoi(arg));
+		}
 	}
 	//avl.print_in_order();
 	return 0;
