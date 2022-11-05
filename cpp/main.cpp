@@ -138,7 +138,7 @@ private:
 			}
 		}
 		//balancing portion
-		balance(node);
+		balance();
 
 		cout << "successful" << endl;
 		return;
