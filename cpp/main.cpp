@@ -149,9 +149,6 @@ private:
 			cout << "unsuccessful" << endl;
 			return;
 		}
-		//balancing portion
-		balance();
-
 		return;
 	}
 	int get_max_height(Node* node, int height) {
@@ -244,40 +241,52 @@ private:
 			cout << "unsuccessful" << endl;
 			return;
 		}
-
-		if(_gator_id < node->get_gator_id()){
-			remove_id(node->get_left_link(), _gator_id);
+		if(root->get_right_link() == nullptr && root->get_left_link() == nullptr){
+			root = nullptr;
+			cout << "successful" << endl;
 			return;
 		}
-		else if(_gator_id > node->get_gator_id()){
-			remove_id(node->get_right_link(), _gator_id);
+
+		vector<string> values;
+		print_in_order(root, values);
+
+		int index = -1;
+		Node* key_node = search_id(root, _gator_id);
+
+		for(size_t i = 0; i < values.size(); i++){
+			if(values[i] == key_node->get_gator_id()){
+				index = i;
+			}
+		}
+		if(index == -1){
+			cout << "successful" << endl;
+			return;
+		}
+		else if(index == values.size() - 1){
+			if(key_node->get_parent_link()->get_left_link() == key_node){
+				key_node->get_parent_link()->set_left_link(nullptr);	
+			}
+			else{
+				key_node->get_parent_link()->set_right_link(nullptr);	
+			}
+			key_node->set_parent_link(nullptr);
+			key_node = nullptr;
+			cout << "successful" << endl;
 			return;
 		}
 		else{
-			if(node->get_left_link() == nullptr && node->get_left_link() == nullptr){
-				delete node;
-				node = nullptr;
-			}
-			else if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
-				Node* predecessor = find_max_key(node->get_left_link());
-
-				node->set_gator_id(predecessor->get_gator_id());
-				remove_id(node->get_left_link(), predecessor->get_gator_id());
-				return;
-			}
-			else{
-				Node* current = node;	//store mem addr of node we want to delete
-
-				if(node->get_left_link() != nullptr){	//if we have a left branch
-					node = node->get_left_link();		//set node to the left branch
-				}
-				else{
-					node = node->get_right_link();		//else, set to right branch
-				}
-
-				delete current;		//delete the original node at the mem addr
-			}
+			index++;
 		}
+
+		Node* replace_node = search_id(root, index);
+
+		//if();
+
+		//if the right child exists, replace replace_node with 
+		//we can just move data over
+		//remove only moves one node's value up to where the removed node was
+		//easy way out: use print_in_order to get vector of all the values in order, remove the one value, construct a new tree with all of the values and balance as you insert
+		
 		cout << "successful" << endl;
 	}
 public:
@@ -290,6 +299,7 @@ public:
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
+		balance();
 	}
 	void print_pre_order() {
 		vector<string> print_vec;
@@ -345,7 +355,7 @@ public:
 			return;
 		}
 		int level_count;
-		level_count = get_max_height(root, 1);
+		level_count = get_max_height(root, 0);
 		cout << level_count << endl;
 	}
 	void remove_id(string _gator_id){
