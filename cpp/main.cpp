@@ -50,7 +50,7 @@ class AVL {
 private:
 	Node* root;
 
-	Node* left_rotate(Node* node){
+	void left_rotate(Node* node){
 		Node* par = node;
 		Node* child = node->get_right_link();
 
@@ -58,11 +58,9 @@ private:
 		par->set_right_link(nullptr);
 		par->set_parent_link(child);
 		child->set_parent_link(nullptr);
-		
-		return child;
 	}
 
-	Node* right_rotate(Node* node){
+	void right_rotate(Node* node){
 		Node* par = node;
 		Node* child = node->get_left_link();
 
@@ -70,8 +68,6 @@ private:
 		par->set_left_link(nullptr);
 		par->set_parent_link(child);
 		child->set_parent_link(nullptr);
-		
-		return child;
 	}
 
 	void balance(){
@@ -87,22 +83,22 @@ private:
 			switch(height_sum){
 				case 3:		//left left
 					{
-						root = right_rotate(root);
+						right_rotate(root);
 					}
 				case -3:	//right right
 					{
-						root = left_rotate(root);
+						left_rotate(root);
 					}
 				case 1:		//left right
 					{
-						root->set_left_link(left_rotate(root->get_left_link()));
-						root = right_rotate(root);
+						left_rotate(root->get_left_link());
+						right_rotate(root);
 						break;
 					}
 				case -1:	//right left
 					{
-						root->set_right_link(right_rotate(root->get_right_link()));
-						root = left_rotate(root);
+						right_rotate(root->get_right_link());
+						left_rotate(root);
 						break;
 					}
 				default:
@@ -237,36 +233,81 @@ private:
 			}
 		}
 	}
-	Node* in_order_successor(Node* node){
-		Node* min = node;
-		Node* point = node;
-		while (point->get_left_link() != nullptr){
-			min = point->get_left_link();
-			point = point->get_left_link();
+	Node* remove_successor(Node* node){
+		Node* parent = node;
+		node = node->get_right_link();
+		bool right_child = node->get_left_link() == nullptr;
+
+		while(node->get_left_link() != nullptr){
+			parent = node;
+			node = node->get_left_link();
 		}
-		return min;
+
+		if(right_child){
+			parent->set_right_link(node->get_right_link());
+		}
+		else{
+			parent->set_left_link(node->get_left_link());
+		}
+
+		node->set_right_link(nullptr);
+		return node;
+	}
+	Node* remove_node(Node* node){
+
+		if(node == nullptr){
+			if(node->get_left_link() == nullptr && node->get_right_link() == nullptr){
+				return nullptr;
+			}
+			
+			if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
+				Node* successor = remove_successor(node);
+				node->set_gator_id(successor->get_gator_id());
+				node->set_name(successor->get_name());
+			}
+			else if(node->get_left_link() != nullptr){
+				node = node->get_left_link();
+			}
+			else{
+				node = node->get_right_link();
+			}
+		}
+
+		return node;
 	}
 	Node* remove_id(Node* node, string _gator_id){
+		Node* parent = nullptr;
+		Node* current = node;
+		bool has_left = false;
+
 		if(root == nullptr){
 			return nullptr;
 		}
-		if(_gator_id < node->get_gator_id()){
-			node->set_left_link(remove_id(node->get_left_link(), _gator_id));
+		while(current != nullptr){
+			if(!current->get_gator_id().compare(_gator_id)){
+				break;
+			}
+
+			parent = current;
+			if(_gator_id < current->get_gator_id()){
+				has_left = true;
+				current = current->get_left_link();
+			}
+			else{
+				has_left = false;
+				current = current->get_right_link();
+			}
 		}
-		else if(_gator_id > node->get_gator_id()){
-			node->set_right_link(remove_id(node->get_right_link(), _gator_id));
+
+		if(parent == nullptr){
+			return remove_node(current);
+		}
+
+		if(has_left){
+			parent->set_left_link(remove_node(current));
 		}
 		else{
-			if(node->get_left_link() == nullptr){
-				return node->get_right_link();
-			}
-			else if(node->get_right_link() == nullptr){
-				return node->get_left_link();
-			}
-			Node* successor = in_order_successor(node->get_right_link());
-			node->set_gator_id(successor->get_gator_id());
-			node->set_name(successor->get_name());
-			node->set_right_link(remove_id(node->get_right_link(),successor->get_gator_id()));
+			parent->set_right_link(remove_node(current));
 		}
 
 		return node;
@@ -281,7 +322,7 @@ public:
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
-		// balance();
+		balance();
 	}
 	void print_pre_order() {
 		vector<string> print_vec;
@@ -353,9 +394,9 @@ public:
 		// }
 	}
 	void remove_in_order(int num){
-	// 	vector<string> id_vec;
-	// 	print_in_order_id(root, id_vec);
-	// 	remove_id(id_vec[num]);
+		// vector<string> id_vec;
+		// print_in_order_id(root, id_vec);
+		// remove_id(id_vec[num]);
 	}
 };
 
@@ -390,7 +431,20 @@ int main(void) {
 			command_parts >> name;
 			command_parts >> id;
 
-			avl.insert(name.substr(1, name.size()-2), id);
+			bool valid_name = true;
+
+			for(auto chr : name.substr(1, name.size()-2)){
+				if((chr < 0x41 || (chr > 0x5A && chr < 0x61)) || ((chr > 0x5A && chr < 0x61) || chr > 0x7A)){
+					valid_name = false;
+				}
+			}
+
+			if(valid_name){
+				avl.insert(name.substr(1, name.size()-2), id);
+			}
+			else{
+				cout << "unsuccessful" << endl;
+			}
 		}
 		else if (start == "remove") {
 			string arg;
