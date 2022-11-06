@@ -33,6 +33,7 @@ public:
 			delete parent;
 	}
 	//mutators
+	void set_name(string _name) { name = _name; }
 	void set_left_link(Node* _left) { left = _left; }
 	void set_right_link(Node* _right) { right = _right; }
 	void set_parent_link(Node* _parent) { parent = _parent; }
@@ -179,11 +180,18 @@ private:
 	void print_pre_order(Node* node, vector<string>& current) {
 		if (node == nullptr)
 			return;
-		current.push_back(node->get_gator_id());
+		current.push_back(node->get_name());
 		print_pre_order(node->get_left_link(), current);
 		print_pre_order(node->get_right_link(), current);
 	}
 	void print_in_order(Node* node, vector<string>& current) {
+		if (node == nullptr)
+			return;
+		print_in_order(node->get_left_link(), current);
+		current.push_back(node->get_name());
+		print_in_order(node->get_right_link(), current);
+	}
+	void print_in_order_id(Node* node, vector<string>& current) {
 		if (node == nullptr)
 			return;
 		print_in_order(node->get_left_link(), current);
@@ -195,7 +203,7 @@ private:
 			return;
 		print_post_order(node->get_left_link(), current);
 		print_post_order(node->get_right_link(), current);
-		current.push_back(node->get_gator_id());
+		current.push_back(node->get_name());
 	}
 	void search_name(Node* node, string name, vector<string>& current) {
 		if (node == nullptr){
@@ -228,66 +236,40 @@ private:
 				return search_id(node->get_right_link(), _gator_id);
 			}
 		}
-
 	}
-	Node* find_max_key(Node* node){
-		while(node->get_right_link() != nullptr){
-			node = node->get_right_link();
+	Node* in_order_successor(Node* node){
+		Node* min = node;
+		Node* point = node;
+		while (point->get_left_link() != nullptr){
+			min = point->get_left_link();
+			point = point->get_left_link();
 		}
-		return node;
+		return min;
 	}
-	void remove_id(Node* node, string _gator_id){
+	Node* remove_id(Node* node, string _gator_id){
 		if(root == nullptr){
-			cout << "unsuccessful" << endl;
-			return;
+			return nullptr;
 		}
-		if(root->get_right_link() == nullptr && root->get_left_link() == nullptr){
-			root = nullptr;
-			cout << "successful" << endl;
-			return;
+		if(_gator_id < node->get_gator_id()){
+			node->set_left_link(remove_id(node->get_left_link(), _gator_id));
 		}
-
-		vector<string> values;
-		print_in_order(root, values);
-
-		int index = -1;
-		Node* key_node = search_id(root, _gator_id);
-
-		for(size_t i = 0; i < values.size(); i++){
-			if(values[i] == key_node->get_gator_id()){
-				index = i;
-			}
-		}
-		if(index == -1){
-			cout << "successful" << endl;
-			return;
-		}
-		else if(index == values.size() - 1){
-			if(key_node->get_parent_link()->get_left_link() == key_node){
-				key_node->get_parent_link()->set_left_link(nullptr);	
-			}
-			else{
-				key_node->get_parent_link()->set_right_link(nullptr);	
-			}
-			key_node->set_parent_link(nullptr);
-			key_node = nullptr;
-			cout << "successful" << endl;
-			return;
+		else if(_gator_id > node->get_gator_id()){
+			node->set_right_link(remove_id(node->get_right_link(), _gator_id));
 		}
 		else{
-			index++;
+			if(node->get_left_link() == nullptr){
+				return node->get_right_link();
+			}
+			else if(node->get_right_link() == nullptr){
+				return node->get_left_link();
+			}
+			Node* successor = in_order_successor(node->get_right_link());
+			node->set_gator_id(successor->get_gator_id());
+			node->set_name(successor->get_name());
+			node->set_right_link(remove_id(node->get_right_link(),successor->get_gator_id()));
 		}
 
-		//Node* replace_node = search_id(root, index);
-
-		//if();
-
-		//if the right child exists, replace replace_node with 
-		//we can just move data over
-		//remove only moves one node's value up to where the removed node was
-		//easy way out: use print_in_order to get vector of all the values in order, remove the one value, construct a new tree with all of the values and balance as you insert
-		
-		cout << "successful" << endl;
+		return node;
 	}
 public:
 	AVL() {
@@ -299,7 +281,7 @@ public:
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
-		balance();
+		// balance();
 	}
 	void print_pre_order() {
 		vector<string> print_vec;
@@ -308,8 +290,9 @@ public:
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
-				cout << print_vec[i] << ",";
+				cout << print_vec[i] << ", ";
 		}
+		cout << endl;
 	}
 	void print_in_order() {
 		vector<string> print_vec;
@@ -318,8 +301,9 @@ public:
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
-				cout << print_vec[i] << ",";
+				cout << print_vec[i] << ", ";
 		}
+		cout << endl;
 	}
 	void print_post_order() {
 		vector<string> print_vec;
@@ -328,8 +312,9 @@ public:
 			if (i == print_vec.size() - 1)
 				cout << print_vec[i];
 			else
-				cout << print_vec[i] << ",";
+				cout << print_vec[i] << ", ";
 		}
+		cout << endl;
 	}
 	void search_id(string _gator_id){
 		Node* found = search_id(root, _gator_id);
@@ -359,13 +344,19 @@ public:
 		cout << level_count << endl;
 	}
 	void remove_id(string _gator_id){
-		remove_id(root, _gator_id);
+		// root = remove_id(root, _gator_id);
+		// if(root == nullptr){
+		// 	cout << "unsuccessful" << endl;
+		// }
+		// else{
+		// 	cout << "successful" << endl;
+		// }
 	}
 	void remove_in_order(int num){
-		vector<string> id_vec;
-		print_in_order(root, id_vec);
-		remove_id(root, id_vec[num]);
-	}
+	// 	vector<string> id_vec;
+	// 	print_in_order_id(root, id_vec);
+	// 	remove_id(id_vec[num]);
+	// }
 };
 
 int main(void) {
@@ -441,7 +432,7 @@ int main(void) {
 			string arg;
 
 			command_parts >> arg;
-
+			
 			avl.remove_in_order(stoi(arg));
 		}
 	}
