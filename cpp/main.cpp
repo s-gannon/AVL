@@ -356,7 +356,7 @@ public:
 	// 	vector<string> id_vec;
 	// 	print_in_order_id(root, id_vec);
 	// 	remove_id(id_vec[num]);
-	// }
+	}
 };
 
 int main(void) {
