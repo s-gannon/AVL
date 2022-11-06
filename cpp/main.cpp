@@ -322,7 +322,7 @@ public:
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
-		balance();
+		//balance();
 	}
 	void print_pre_order() {
 		vector<string> print_vec;
