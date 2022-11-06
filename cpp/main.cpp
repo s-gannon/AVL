@@ -50,61 +50,78 @@ class AVL {
 private:
 	Node* root;
 
-	void left_rotate(Node* node){
-		Node* par = node;
+	Node* left_rotate(Node* node){
 		Node* child = node->get_right_link();
 
-		child->set_left_link(par);
-		par->set_right_link(nullptr);
-		par->set_parent_link(child);
+		child->set_left_link(node);
+		node->set_right_link(nullptr);
+		node->set_parent_link(child);
 		child->set_parent_link(nullptr);
+
+		return child;
 	}
 
-	void right_rotate(Node* node){
-		Node* par = node;
-		Node* child = node->get_left_link();
+	Node* right_rotate(Node* node){
+		Node* child = node->get_left_link();	//root.left
 
-		child->set_right_link(par);
-		par->set_left_link(nullptr);
-		par->set_parent_link(child);
+		child->set_right_link(node);		//root.left.right = root
+		node->set_left_link(nullptr);	//root.left = nullptr
+		node->set_parent_link(child);	
 		child->set_parent_link(nullptr);
+
+		return child;
 	}
 
 	void balance(){
 		int left_height = get_max_height(root->get_left_link(), 0);
 		int right_height = get_max_height(root->get_right_link(), 0);
-		if(abs(left_height - right_height) > 1){
-			int parent_height = get_max_height(root, 0);
-			int child_height;
+		int parent_bal = left_height - right_height;
+		if(abs(parent_bal) > 1){
+			int child_bal, child_left_height, child_right_height;
+			if(left_height > right_height){
+				child_left_height = 
+					get_max_height(root->get_left_link()->get_left_link(), 0);
+				child_right_height = 
+					get_max_height(root->get_left_link()->get_right_link(), 0);
+			}
+			else{
+				child_left_height = 
+					get_max_height(root->get_right_link()->get_left_link(), 0);
+				child_right_height = 
+					get_max_height(root->get_right_link()->get_right_link(), 0);
+			}
+			child_bal = child_left_height - child_right_height;
 
-			child_height = (left_height > right_height ? left_height : right_height);
-
-			int height_sum = parent_height + child_height;
-			switch(height_sum){
+			int bal_fact = parent_bal + child_bal;
+			// cout << parent_bal << child_bal << endl;
+			switch(bal_fact){
 				case 3:		//left left
 					{
-						right_rotate(root);
+						root = right_rotate(root);
+						break;
 					}
 				case -3:	//right right
 					{
-						left_rotate(root);
+						root = left_rotate(root);
+						break;
 					}
 				case 1:		//left right
 					{
-						left_rotate(root->get_left_link());
-						right_rotate(root);
+						root = left_rotate(root->get_left_link());
+						root = right_rotate(root);
 						break;
 					}
 				case -1:	//right left
 					{
-						right_rotate(root->get_right_link());
-						left_rotate(root);
+						root = right_rotate(root->get_right_link());
+						root = left_rotate(root);
 						break;
 					}
 				default:
-					cout << "unsuccessful" << endl;
-					return;
-					break;
+					{	
+						cout << "unsuccessful" << endl;
+						break;
+					}
 			}
 		}
 	}
@@ -322,7 +339,7 @@ public:
 	}
 	void insert(string _name, string _gator_id) {
 		insert(root, _name, _gator_id);
-		//balance();
+		balance();
 	}
 	void print_pre_order() {
 		vector<string> print_vec;
@@ -381,7 +398,7 @@ public:
 			return;
 		}
 		int level_count;
-		level_count = get_max_height(root, 0);
+		level_count = get_max_height(root, 1);
 		cout << level_count << endl;
 	}
 	void remove_id(string _gator_id){
