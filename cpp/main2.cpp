@@ -75,29 +75,35 @@ private:
 			node->right = insert(node->right, _name, _gator_id);
 		}
 		//balancing goes on down here
-		node->height = 1 + max(height(node->left), height(node->right));
+		node->height = max(height(node->left), height(node->right)) + 1;
 		
-		int bal_fact = get_bal_fact(node);
+		int par_bal_fact = get_bal_fact(node);
+		int child_bal_fact;
+		if(get_bal_fact(node->left) > get_bal_fact(node->right)){
+			child_bal_fact = get_bal_fact(node->left);
+		}
+		else{
+			child_bal_fact = get_bal_fact(node->right);
+		}
 
-		if(bal_fact > 1){
-			if(_gator_id < node->left->gator_id){
+		if(par_bal_fact == 2){
+			if(child_bal_fact == 1){
 				return right_rotate(node);
 			}
-			else if(_gator_id > node->left->gator_id){
+			else if(child_bal_fact == -1){
 				node->left = left_rotate(node->left);
 				return right_rotate(node);
 			}
 		}
-		if(bal_fact < -1){
-			if(_gator_id > node->right->gator_id){
+		else if(par_bal_fact == -2){
+			if(child_bal_fact == -1){
 				return left_rotate(node);
 			}
-			else if(_gator_id < node->right->gator_id){
+			else if(child_bal_fact == 1){
 				node->right = right_rotate(node->right);
 				return left_rotate(node);
 			}
 		}
-
 		return node;
 	}
 	Node* smallest_node(Node* node){
