@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -9,411 +10,298 @@
 
 using namespace std;
 
-class Node {
-private:
-	string name;
-	string gator_id;
+inline int max(int a, int b){
+	return (a > b ? a : b);
+}
+
+class Node{
+public:
+	int height;
+	string name, gator_id;
 	Node* left;
 	Node* right;
-	Node* parent;
-public:
-	Node(string _name, string _gator_id) {
+
+	Node(string _name, string _gator_id){
+		height = 1;
 		name = _name;
 		gator_id = _gator_id;
 		left = nullptr;
 		right = nullptr;
-		parent = nullptr;
 	}
-	~Node() {
-		if(left == nullptr)
-			delete left;
-		if(right == nullptr)
-			delete right;
-		if(parent == nullptr)
-			delete parent;
+	~Node(){
+		delete left;
+		delete right;
 	}
-	//mutators
-	void set_name(string _name) { name = _name; }
-	void set_left_link(Node* _left) { left = _left; }
-	void set_right_link(Node* _right) { right = _right; }
-	void set_parent_link(Node* _parent) { parent = _parent; }
-	void set_gator_id(string _gator_id) { gator_id = _gator_id; }
-	//accessors
-	string get_name() { return name; }
-	string get_gator_id() { return gator_id; }
-	Node* get_left_link() { return left; }
-	Node* get_right_link() { return right; }
-	Node* get_parent_link() { return parent; }
 };
 
 class AVL {
 private:
 	Node* root;
-
+	int height(Node* node){
+		return (node == nullptr ? 0 : node->height);
+	}
+	int get_bal_fact(Node* node){
+		return (node == nullptr ? 0 : height(node->left) - height(node->right));
+	}
 	Node* left_rotate(Node* node){
-		Node* child = node->get_right_link();
+		Node* par = node->right;
+		Node* child = par->left;
 
-		child->set_left_link(node);
-		node->set_right_link(nullptr);
-		node->set_parent_link(child);
-		child->set_parent_link(nullptr);
+		par->left = node;
+		node->right = child;
+		node->height = max(height(node->left), height(node->right)) + 1;
+		par->height = max(height(par->left), height(par->right)) + 1;
 
-		return child;
+		return par;
 	}
-
-	Node* right_rotate(Node* node){
-		Node* child = node->get_left_link();	//root.left
-
-		child->set_right_link(node);		//root.left.right = root
-		node->set_left_link(nullptr);	//root.left = nullptr
-		node->set_parent_link(child);	
-		child->set_parent_link(nullptr);
-
-		return child;
+	Node* right_rotate(Node *node){
+		Node* par = node->left;
+		Node* child = par->right;
+		par->right = node;
+		node->left = child;
+		node->height = max(height(node->left), height(node->right)) + 1;
+		par->height = max(height(par->left), height(par->right)) + 1;
+		
+		return par;
 	}
+	Node* insert(Node* node, string _name, string _gator_id){
+		if(node == nullptr){
+			return new Node(_name, _gator_id);
+		}
+		if(_gator_id < root->gator_id){
+			node->left = insert(node->left, _name, _gator_id);
+		}
+		else if(_gator_id > root->gator_id){
+			node->right = insert(node->right, _name, _gator_id);
+		}
+		//balancing goes on down here
+		node->height = max(height(node->left), height(node->right)) + 1;
+		
+		int par_bal_fact = get_bal_fact(node);
+		int child_bal_fact;
+		if(get_bal_fact(node->left) > get_bal_fact(node->right)){
+			child_bal_fact = get_bal_fact(node->left);
+		}
+		else{
+			child_bal_fact = get_bal_fact(node->right);
+		}
 
-	void balance(){
-		int left_height = get_max_height(root->get_left_link(), 0);
-		int right_height = get_max_height(root->get_right_link(), 0);
-		int parent_bal = left_height - right_height;
-		if(abs(parent_bal) > 1){
-			int child_bal, child_left_height, child_right_height;
-			if(left_height > right_height){
-				child_left_height = 
-					get_max_height(root->get_left_link()->get_left_link(), 0);
-				child_right_height = 
-					get_max_height(root->get_left_link()->get_right_link(), 0);
+		if(par_bal_fact == 2){
+			if(child_bal_fact == 1){
+				return right_rotate(node);
+			}
+			else if(child_bal_fact == -1){
+				node->left = left_rotate(node->left);
+				return right_rotate(node);
+			}
+		}
+		else if(par_bal_fact == -2){
+			if(child_bal_fact == -1){
+				return left_rotate(node);
+			}
+			else if(child_bal_fact == 1){
+				node->right = right_rotate(node->right);
+				return left_rotate(node);
+			}
+		}
+		return node;
+	}
+	Node* smallest_node(Node* node){
+		Node* current = node;
+		while(current->left != nullptr){
+			current = current->left;
+		}
+		return current;
+	}
+	Node* remove_id(Node* node, string _gator_id){
+		if(node == nullptr){
+			return node;
+		}
+		if(_gator_id < node->gator_id){
+			node->left = remove_id(node->left, _gator_id);
+		}
+		else if(_gator_id > node->gator_id){
+			node->right = remove_id(node->right, _gator_id);
+		}
+		else{
+			if((node->left == nullptr) || (node->right == nullptr)){
+				Node* temp = node->left ? node->left : node->right;
+
+				if(temp == nullptr){
+					temp = node;
+					node = nullptr;
+				}
+				else{
+					*node = *temp;
+				}
+				free(temp);
 			}
 			else{
-				child_left_height = 
-					get_max_height(root->get_right_link()->get_left_link(), 0);
-				child_right_height = 
-					get_max_height(root->get_right_link()->get_right_link(), 0);
+				Node* temp = smallest_node(node->right);
+				node->gator_id = temp->gator_id;
+				node->name = temp->name;
+				node->right = remove_id(node->right, temp->gator_id);
 			}
-			child_bal = child_left_height - child_right_height;
+		}
 
-			int bal_fact = parent_bal + child_bal;
-			// cout << parent_bal << child_bal << endl;
-			switch(bal_fact){
-				case 3:		//left left
-					{
-						root = right_rotate(root);
-						break;
-					}
-				case -3:	//right right
-					{
-						root = left_rotate(root);
-						break;
-					}
-				case 1:		//left right
-					{
-						root = left_rotate(root->get_left_link());
-						root = right_rotate(root);
-						break;
-					}
-				case -1:	//right left
-					{
-						root = right_rotate(root->get_right_link());
-						root = left_rotate(root);
-						break;
-					}
-				default:
-					{	
-						cout << "unsuccessful" << endl;
-						break;
-					}
-			}
-		}
-	}
-
-	void insert(Node* node, string _name, string _gator_id) {
-		if (root == nullptr) {
-			root = new Node(_name, _gator_id);
-			cout << "successful" << endl;
-			return;
-		}
-		if (_gator_id < node->get_gator_id()) {	//go down the left
-			if (node->get_left_link() == nullptr) {	//should go in left and nothing in left pointer
-				Node* new_node = new Node(_name, _gator_id);
-				node->set_left_link(new_node);
-				new_node->set_parent_link(node);
-
-				cout << "successful" << endl;
-				return;
-			}
-			else {
-				insert(node->get_left_link(), _name, _gator_id);
-				return;
-			}
-		}
-		else if(_gator_id > node->get_gator_id()) {	//go down the right
-			if (node->get_right_link() == nullptr) {	//successful addition
-				Node* new_node = new Node(_name, _gator_id);
-				node->set_right_link(new_node);
-				node->get_right_link()->set_parent_link(node);
-				cout << "successful" << endl;
-				return;
-			}
-			else {
-				insert(node->get_right_link(), _name, _gator_id);
-				return;
-			}
-		}
-		else{
-			cout << "unsuccessful" << endl;
-			return;
-		}
-		return;
-	}
-	int get_max_height(Node* node, int height) {
 		if(node == nullptr){
-			return -1;
+			return node;
 		}
-		else if (node->get_left_link() == nullptr && node->get_right_link() == nullptr) {
-			return height;
-		}
-		else if (node->get_left_link() != nullptr && node->get_right_link() != nullptr) {
-			++height;
-			return 	max(get_max_height(node->get_left_link(), height),
-				get_max_height(node->get_right_link(), height));
-		}
-		else if (node->get_left_link() != nullptr) {
-			++height;
-			return get_max_height(node->get_left_link(), height);
-		}
-		else if (node->get_right_link() != nullptr) {
-			++height;
-			return get_max_height(node->get_right_link(), height);
-		}
-		else{
-			fprintf(stderr, "[ERROR] Unexpected error in get_max_height.\n");
-			return -1;
-		}
+
+		return node;
 	}
-	void print_pre_order(Node* node, vector<string>& current) {
-		if (node == nullptr)
-			return;
-		current.push_back(node->get_name());
-		print_pre_order(node->get_left_link(), current);
-		print_pre_order(node->get_right_link(), current);
+	string search_id(Node* node, string _gator_id){
+		if(node == nullptr){
+			return "";
+		}
+		if(node->gator_id.compare(_gator_id) == 0){
+			return node->name;
+		}
+		else if(_gator_id < node->gator_id){
+			return search_id(node->left, _gator_id);
+		}
+		else if(_gator_id > node->gator_id){
+			return search_id(node->right, _gator_id);
+		}
+		return "";
 	}
-	void print_in_order(Node* node, vector<string>& current) {
-		if (node == nullptr)
-			return;
-		print_in_order(node->get_left_link(), current);
-		current.push_back(node->get_name());
-		print_in_order(node->get_right_link(), current);
-	}
-	void print_in_order_id(Node* node, vector<string>& current) {
-		if (node == nullptr)
-			return;
-		print_in_order(node->get_left_link(), current);
-		current.push_back(node->get_gator_id());
-		print_in_order(node->get_right_link(), current);
-	}
-	void print_post_order(Node* node, vector<string>& current) {
-		if (node == nullptr)
-			return;
-		print_post_order(node->get_left_link(), current);
-		print_post_order(node->get_right_link(), current);
-		current.push_back(node->get_name());
-	}
-	void search_name(Node* node, string name, vector<string>& current) {
+	void search_name(Node* node, string _name, vector<string>& ids){
 		if (node == nullptr){
 			return;
 		}
-		search_name(node->get_left_link(), name, current);
-		if (!name.compare(node->get_name())){	//if comparison returns 0, invert that and make it true because the two are equal
-			current.push_back(node->get_gator_id());
+		search_name(node->left, _name, ids);
+		if (_name.compare(node->name) == 0){
+			ids.push_back(node->gator_id);
 		}
-		search_name(node->get_right_link(), name,  current);
+		search_name(node->right, _name, ids);
 	}
-	Node* search_id(Node* node, string _gator_id){
-		if (root == nullptr) {
-			return nullptr;
-		}
-		if (!(node->get_gator_id().compare(_gator_id))){
-			return node;	//found it! return the ptr
-		}
-		if (_gator_id < node->get_gator_id()) {	//go down the left
-			if (node->get_left_link() == nullptr)
-				return nullptr;	//there's no more left, so it's not here
-			else {
-				return search_id(node->get_left_link(), _gator_id);	//there's more left
-			}
-		}
-		else {	//go down the right
-			if (node->get_right_link() == nullptr)
-				return nullptr;
-			else {
-				return search_id(node->get_right_link(), _gator_id);
-			}
-		}
+	void get_ids_in_order(Node* node, vector<string>& ids) {
+		if (node == nullptr)
+			return;
+		get_ids_in_order(node->left, ids);
+		ids.push_back(node->gator_id);
+		get_ids_in_order(node->right, ids);
 	}
-	Node* remove_successor(Node* node){
-		Node* parent = node;
-		node = node->get_right_link();
-		bool right_child = node->get_left_link() == nullptr;
-
-		while(node->get_left_link() != nullptr){
-			parent = node;
-			node = node->get_left_link();
-		}
-
-		if(right_child){
-			parent->set_right_link(node->get_right_link());
-		}
-		else{
-			parent->set_left_link(node->get_left_link());
-		}
-
-		node->set_right_link(nullptr);
-		return node;
+	void get_names_in_order(Node* node, vector<string>& names) {
+		if (node == nullptr)
+			return;
+		get_names_in_order(node->left, names);
+		names.push_back(node->name);
+		get_names_in_order(node->right, names);
 	}
-	Node* remove_node(Node* node){
-
-		if(node == nullptr){
-			if(node->get_left_link() == nullptr && node->get_right_link() == nullptr){
-				return nullptr;
-			}
-			
-			if(node->get_left_link() != nullptr && node->get_right_link() != nullptr){
-				Node* successor = remove_successor(node);
-				node->set_gator_id(successor->get_gator_id());
-				node->set_name(successor->get_name());
-			}
-			else if(node->get_left_link() != nullptr){
-				node = node->get_left_link();
-			}
-			else{
-				node = node->get_right_link();
-			}
-		}
-
-		return node;
+	void get_names_post_order(Node* node, vector<string>& names) {
+		if (node == nullptr)
+			return;
+		get_names_post_order(node->left, names);
+		get_names_post_order(node->right, names);
+		names.push_back(node->name);
 	}
-	Node* remove_id(Node* node, string _gator_id){
-		Node* parent = nullptr;
-		Node* current = node;
-		bool has_left = false;
-
-		if(root == nullptr){
-			return nullptr;
-		}
-		while(current != nullptr){
-			if(!current->get_gator_id().compare(_gator_id)){
-				break;
-			}
-
-			parent = current;
-			if(_gator_id < current->get_gator_id()){
-				has_left = true;
-				current = current->get_left_link();
-			}
-			else{
-				has_left = false;
-				current = current->get_right_link();
-			}
-		}
-
-		if(parent == nullptr){
-			return remove_node(current);
-		}
-
-		if(has_left){
-			parent->set_left_link(remove_node(current));
-		}
-		else{
-			parent->set_right_link(remove_node(current));
-		}
-
-		return node;
+	void get_names_pre_order(Node* node, vector<string>& names) {
+		if (node == nullptr)
+			return;
+		names.push_back(node->name);
+		get_names_pre_order(node->left, names);
+		get_names_pre_order(node->right, names);
 	}
 public:
-	AVL() {
+	AVL(){
 		root = nullptr;
 	}
-	~AVL() {
-		if(root == nullptr)
-			delete root;
+	~AVL(){
+		delete root;
 	}
-	void insert(string _name, string _gator_id) {
-		insert(root, _name, _gator_id);
-		balance();
-	}
-	void print_pre_order() {
-		vector<string> print_vec;
-		print_pre_order(root, print_vec);
-		for (size_t i = 0; i < print_vec.size(); i++) {
-			if (i == print_vec.size() - 1)
-				cout << print_vec[i];
-			else
-				cout << print_vec[i] << ", ";
-		}
-		cout << endl;
-	}
-	void print_in_order() {
-		vector<string> print_vec;
-		print_in_order(root, print_vec);
-		for (size_t i = 0; i < print_vec.size(); i++) {
-			if (i == print_vec.size() - 1)
-				cout << print_vec[i];
-			else
-				cout << print_vec[i] << ", ";
-		}
-		cout << endl;
-	}
-	void print_post_order() {
-		vector<string> print_vec;
-		print_post_order(root, print_vec);
-		for (size_t i = 0; i < print_vec.size(); i++) {
-			if (i == print_vec.size() - 1)
-				cout << print_vec[i];
-			else
-				cout << print_vec[i] << ", ";
-		}
-		cout << endl;
-	}
+	Node* getRoot(){return root;}
 	void search_id(string _gator_id){
-		Node* found = search_id(root, _gator_id);
-		if(found == nullptr){
+		string res = search_id(root, _gator_id);
+		if(res.compare("") == 0){
 			cout << "unsuccessful" << endl;
 		}
 		else{
-			cout << found->get_name() << endl;
+			cout << res << endl;
 		}
 	}
-	void search_name(string name){
-		vector<string> print_vec;
-		search_name(root, name, print_vec);
-		if(print_vec.size() == 0){
+	void search_name(string _name){
+		vector<string> ids;
+		search_name(root, _name, ids);
+		if(ids.size() == 0){
 			cout << "unsuccessful" << endl;
 		}
-		for(auto i : print_vec)
-			cout << i << endl;
-	}
-	void print_level_count(){
-		if (root == nullptr) {
-			cout << "0" << endl;
-			return;
+		else{
+			for(auto id : ids){
+				cout << id << endl;
+			}
 		}
-		int level_count;
-		level_count = get_max_height(root, 1);
-		cout << level_count << endl;
+	}
+	void insert(string _name, string _gator_id){
+		if(search_id(root, _gator_id).compare("") == 0){
+			root = insert(root, _name, _gator_id);
+			cout << "successful" << endl;
+		}
+		else{
+			cout << "unsuccessful" << endl;
+		}
 	}
 	void remove_id(string _gator_id){
-		// root = remove_id(root, _gator_id);
-		// if(root == nullptr){
-		// 	cout << "unsuccessful" << endl;
-		// }
-		// else{
-		// 	cout << "successful" << endl;
-		// }
+		if(search_id(root, _gator_id).compare("") != 0){
+			root = remove_id(root, _gator_id);
+			cout << "successful" << endl;
+		}
+		else{
+			cout << "unsuccessful" << endl;
+		}
 	}
 	void remove_in_order(int num){
-		// vector<string> id_vec;
-		// print_in_order_id(root, id_vec);
-		// remove_id(id_vec[num]);
+		vector<string> ids;
+		get_ids_in_order(root, ids);
+		if(ids.size() <= num + 1){
+			root = remove_id(root, ids[num]);
+			cout << "successful" << endl;
+		}
+		else{
+			cout << "unsuccessful" << endl;
+		}
+	}
+	void print_level_count(){
+		cout << height(root) << endl;
+	}
+	void print_in_order(){
+		vector<string> names;
+		get_names_in_order(root, names);
+		for(size_t i = 0; i < names.size(); i++){
+			if(i == names.size() - 1){
+				cout << names[i];
+			}
+			else{
+				cout << names[i] << ", ";
+			}
+		}
+		cout << endl;
+	}
+	void print_pre_order(){
+		vector<string> names;
+		get_names_pre_order(root, names);
+		for(size_t i = 0; i < names.size(); i++){
+			if(i == names.size() - 1){
+				cout << names[i];
+			}
+			else{
+				cout << names[i] << ", ";
+			}
+		}
+		cout << endl;
+	}
+	void print_post_order(){
+		vector<string> names;
+		get_names_post_order(root, names);
+		for(size_t i = 0; i < names.size(); i++){
+			if(i == names.size() - 1){
+				cout << names[i];
+			}
+			else{
+				cout << names[i] << ", ";
+			}
+		}
+		cout << endl;
 	}
 };
 
@@ -455,6 +343,9 @@ int main(void) {
 					valid_name = false;
 				}
 			}
+			if(id.size() != 8){
+				cout << "unsuccessful" << endl;
+			}
 
 			if(valid_name){
 				avl.insert(name.substr(1, name.size()-2), id);
@@ -470,9 +361,6 @@ int main(void) {
 
 			if(arg.size() == 8){	//remove id (string)
 				avl.remove_id(arg);
-			}
-			else{	//remove in order (int)
-				avl.remove_in_order(stoi(arg));
 			}
 		}
 		else if (start == "search") {
